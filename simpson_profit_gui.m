@@ -324,40 +324,30 @@ function export_results(src, event)
   end
 
   % Create export dialog
-  export_dialog = figure('Name', 'Export Results', 'Position', [500 300 400 300], ...
+  export_dialog = figure('Name', 'Export Results', 'Position', [0.4 0.4 0.3 0.3], ...
                         'NumberTitle', 'off', 'MenuBar', 'none');
 
   % Text field for filename
-  uicontrol(export_dialog, 'Style', 'text', 'Position', [20 250 360 30], ...
-            'String', 'Export Calculation Results', 'FontSize', 14, 'FontWeight', 'bold');
+  uicontrol(export_dialog, 'Style', 'text', 'Units', 'normalized', 'Position', [0.05 0.8 0.9 0.1], ...
+            'String', 'Export Calculation Results', 'FontSize', 12, 'FontWeight', 'bold');
 
-  uicontrol(export_dialog, 'Style', 'text', 'Position', [20 220 80 20], ...
-            'String', 'Filename:', 'FontSize', 11, 'HorizontalAlignment', 'left');
+  uicontrol(export_dialog, 'Style', 'text', 'Units', 'normalized', 'Position', [0.05 0.65 0.3 0.1], ...
+            'String', 'Filename:', 'FontSize', 10, 'HorizontalAlignment', 'left');
 
-  filename_input = uicontrol(export_dialog, 'Style', 'edit', 'Position', [100 220 280 20], ...
-                            'String', 'simpson_profit_results', 'FontSize', 10);
+  filename_input = uicontrol(export_dialog, 'Style', 'edit', 'Units', 'normalized', ...
+                            'Position', [0.4 0.65 0.5 0.1], 'String', 'simpson_profit_results', 'FontSize', 10);
 
   % Format selection
-  uicontrol(export_dialog, 'Style', 'text', 'Position', [20 180 80 20], ...
-            'String', 'Format:', 'FontSize', 11, 'HorizontalAlignment', 'left');
+  uicontrol(export_dialog, 'Style', 'text', 'Units', 'normalized', 'Position', [0.05 0.5 0.3 0.1], ...
+            'String', 'Format:', 'FontSize', 10, 'HorizontalAlignment', 'left');
 
-  format_select = uicontrol(export_dialog, 'Style', 'popupmenu', 'Position', [100 180 280 20], ...
-                           'String', {'CSV file (.csv)', 'Excel file (.xlsx)', 'MATLAB file (.mat)'}, ...
+  format_select = uicontrol(export_dialog, 'Style', 'popupmenu', 'Units', 'normalized', ...
+                           'Position', [0.4 0.5 0.5 0.1], ...
+                           'String', {'CSV file (.csv)', 'MATLAB file (.mat)'}, ...
                            'Value', 1, 'FontSize', 10);
 
-  % Summary display
-  summary_text = uicontrol(export_dialog, 'Style', 'text', 'Position', [20 80 360 90], ...
-                          'String', sprintf(['Total Profit: $%.2f\n', ...
-                                           'Time Period: %.1f %s\n', ...
-                                           'Number of data points: %d'], ...
-                                           result_data.total_profit, ...
-                                           result_data.time_span, ...
-                                           result_data.time_unit, ...
-                                           length(result_data.x)), ...
-                          'FontSize', 10, 'HorizontalAlignment', 'left');
-
   % Export button
-  uicontrol(export_dialog, 'Style', 'pushbutton', 'Position', [150 20 100 40], ...
+  uicontrol(export_dialog, 'Style', 'pushbutton', 'Units', 'normalized', 'Position', [0.35 0.2 0.3 0.15], ...
             'String', 'Export', 'FontSize', 12, ...
             'Callback', @(src, event) do_export(filename_input, format_select, result_data, export_dialog));
 end
@@ -370,41 +360,20 @@ function do_export(filename_input, format_select, result_data, dialog)
 
   try
     % Export based on format
-    if contains(selected_format, 'CSV')
+    if ~isempty(strfind(selected_format, 'CSV'))
       % Prepare data for CSV
       x = result_data.x;
       p = result_data.p;
 
-      % Create table
-      T = table(x', p', 'VariableNames', {'Time', 'Profit'});
-
-      % Add a row for total profit
-      final_row = table(NaN, result_data.total_profit, 'VariableNames', {'Time', 'Profit'});
-      T = [T; final_row];
-
-      % Export
-      writetable(T, [filename, '.csv']);
-
-    elseif contains(selected_format, 'Excel')
-      % Create Excel file with multiple sheets
-
-      % Original data sheet
-      T1 = table(result_data.x_original', result_data.p_original', ...
-                'VariableNames', {['Time (', result_data.time_unit, ')'], 'Profit ($)'});
-      writetable(T1, [filename, '.xlsx'], 'Sheet', 'Original Data');
-
-      % Full data with interpolation if used
-      T2 = table(result_data.x', result_data.p', ...
-                'VariableNames', {['Time (', result_data.time_unit, ')'], 'Profit ($)'});
-      writetable(T2, [filename, '.xlsx'], 'Sheet', 'Analysis Data');
-
-      % Summary sheet
-      summary_data = {'Total Profit ($)', result_data.total_profit;
-                     ['Time Period (', result_data.time_unit, ')'], result_data.time_span;
-                     'Number of Points', length(result_data.x);
-                     'Simpson''s Rule Step Size', result_data.simpson_h};
-      T3 = cell2table(summary_data, 'VariableNames', {'Metric', 'Value'});
-      writetable(T3, [filename, '.xlsx'], 'Sheet', 'Summary');
+      % Write to CSV file
+      csv_filename = [filename, '.csv'];
+      fid = fopen(csv_filename, 'w');
+      fprintf(fid, 'Time,Profit\n');
+      for i = 1:length(x)
+        fprintf(fid, '%f,%f\n', x(i), p(i));
+      end
+      fprintf(fid, 'Total Profit,%f\n', result_data.total_profit);
+      fclose(fid);
 
     else % MATLAB file
       % Save as .mat file
