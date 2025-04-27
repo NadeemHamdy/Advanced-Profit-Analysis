@@ -115,7 +115,11 @@ To use the tool, simply enter your time points and corresponding profit values a
 ---
 
 ## 🤝 Contributors  
-**Developed by:** Nadeem  
+**Developed by:** Nadeem  + Youssef + Mohamed + Mahmoud
+**Video Editing:** Youssef
+**Presentation:** Nadeem
+**Video Presentation:** Mohamed
+**Bugs Finder + Quality:** Mahmoud
 **Course:** Numerical Analysis  
 **Institution:** Faculty of Science  
 
